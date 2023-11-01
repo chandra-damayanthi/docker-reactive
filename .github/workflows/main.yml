@@ -30,5 +30,12 @@ jobs:
     - name: Deploy to EB
       uses: einaregilsson/beanstalk-deploy@v18
       with:
-        aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-        aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+            aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+            aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+            application_name: docker-react-app
+            environment_name: Docker-react-app-env
+            existing_bucket_name: elasticbeanstalk-us-east-1-854544130908
+            region: us-east-1
+            version_label: ${{ github.sha }}
+            deployment_package: deploy.zip
+
