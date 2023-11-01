@@ -14,7 +14,9 @@ jobs:
       run: |
         docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin <<< ${{ secrets.DOCKER_TOKEN }}
 
-   
+    - name: Remove Docker credentials
+      run: rm ~/.docker/config.json
+
     - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
     - run: docker run -e CI=true cygnetops/react-test npm test
  
