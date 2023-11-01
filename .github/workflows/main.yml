@@ -1,32 +1,33 @@
-name: Deploy Frontend
+name: Build and Deploy
+
 on:
-    push:
-     branches:
-        - main # check your repo, your default branch might be master!
-    
+  push:
+    branches:
+      - main  # Adjust with your branch name
+
 jobs:
-    build:
-     runs-on: ubuntu-latest
-     steps:
-        - uses: actions/checkout@v3
-        - env: 
-            DOCKER_TOKEN: ${{ env.DOCKER_TOKEN }}
-        - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
-        - run: docker run -e CI=true cygnetops/react-test npm test
+  build-and-deploy:
+    runs-on: ubuntu-latest
     
-        - name: Generate deployment package
-          run: zip -r deploy.zip . -x '*.git*'
-    
-        - name: Deploy to EB
-          uses: einaregilsson/beanstalk-deploy@v18
-          with:
-            aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-            aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-            application_name: docker-react-app
-            environment_name: Docker-react-app-env
-            existing_bucket_name: elasticbeanstalk-us-east-1-854544130908
-            region: us-east-1
-            version_label: ${{ github.sha }}
-            deployment_package: deploy.zip
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # Note that actions/checkout@v3 does not exist yet, use v2 instead
 
+    - name: Build Docker Image
+      env:
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}  # It's better to use secrets instead of env for sensitive data
+      run: |
+        echo $DOCKER_TOKEN | docker login -u your-username --password-stdin  # Assuming you need to login to Docker
+        docker build -t cygnetops/react-test -f Dockerfile.dev .
 
+    - name: Run Tests
+      run: docker run -e CI=true cygnetops/react-test npm test
+
+    - name: Generate deployment package
+      run: zip -r deploy.zip . -x '*.git*'
+
+    - name: Deploy to EB
+      uses: einaregilsson/beanstalk-deploy@v18
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
