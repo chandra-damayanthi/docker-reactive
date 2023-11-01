@@ -13,12 +13,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2  # Note that actions/checkout@v3 does not exist yet, use v2 instead
 
-    - name: Build Docker Image
+    - name: Login to DockerHub
       env:
-        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}  # It's better to use secrets instead of env for sensitive data
-      run: |
-        echo $DOCKER_TOKEN | docker login -u your-username --password-stdin  # Assuming you need to login to Docker
-        docker build -t cygnetops/react-test -f Dockerfile.dev .
+        DOCKER_USERNAME: your-username  # Replace with your DockerHub username
+      run: echo ${{ secrets.DOCKER_TOKEN }} | docker login -u $DOCKER_USERNAME --password-stdin
+
+    - name: Build Docker Image
+      run: docker build -t cygnetops/react-test -f Dockerfile.dev .
 
     - name: Run Tests
       run: docker run -e CI=true cygnetops/react-test npm test
