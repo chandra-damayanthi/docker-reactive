@@ -1,51 +1,29 @@
-name: Build and Deploy
-
+name: Deploy Frontend
 on:
   push:
     branches:
-      - main  # Adjust with your branch name
-
+      - main # check your repo, your default branch might be master!
+ 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    
-    env:
-      DOCKER_USERNAME: sudayanga  # DockerHub username
-      AWS_REGION: us-east-1       # AWS region
-      APP_NAME: docker-react-app  # Application name
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-
-    - name: Login to DockerHub
-      run: docker login -u $DOCKER_USERNAME --password ${{ secrets.DOCKER_TOKEN }}
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        push: true
-        tags: cygnetops/react-test:${{ github.sha }}
-        file: Dockerfile.dev
-
-    - name: Run Tests
-      run: docker run -e CI=true cygnetops/react-test:${{ github.sha }} npm test
-
-    - name: Generate deployment package
-      run: zip -r deploy.zip . -x '*.git*'
-
-    - name: Deploy to AWS Elastic Beanstalk
-      uses: einaregilsson/beanstalk-deploy@v18
-      with:
-        aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-        aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-        application_name: $APP_NAME
-        environment_name: Docker-react-app-env
-        existing_bucket_name: elasticbeanstalk-$AWS_REGION-854544130908
-        region: $AWS_REGION
-        version_label: ${{ github.sha }}
-        deployment_package: deploy.zip
+      - uses: actions/checkout@v3
+      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
+      - run: docker run -e CI=true cygnetops/react-test npm test
+ 
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+ 
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: $APP_NAME
+          environment_name: Docker-react-app-env
+          existing_bucket_name: elasticbeanstalk-$AWS_REGION-854544130908
+          region: $AWS_REGION
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
