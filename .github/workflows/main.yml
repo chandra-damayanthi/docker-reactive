@@ -9,9 +9,8 @@ jobs:
      runs-on: ubuntu-latest
      steps:
         - uses: actions/checkout@v3
-        - env:
-              DOCKER_TOKEN: ${{ env.DOCKER_TOKEN }}
-
+        - env: 
+            DOCKER_TOKEN: ${{ env.DOCKER_TOKEN }}
         - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
         - run: docker run -e CI=true cygnetops/react-test npm test
     
